@@ -18,7 +18,19 @@
 
     <button id="run-robot">Run Delivery Robot</button>
 
-    <br />
+    <div>
+      <input
+        type="range"
+        id="speed-input"
+        name="speed-input"
+        min="0.5"
+        max="5"
+        step="0.5"
+        value="2"
+      />
+      <label for="speed-input">Speed</label>
+    </div>
+
     <br />
 
     <div
@@ -26,7 +38,7 @@
       style="position: relative; line-height: 0.1; margin-left: 10px"
     >
       <img src="img/village2x.png" style="vertical-align: -8px" />
-      <div id="robot-elt">
+      <div id="robot-elt" style="position: absolute">
         <img id="robot-img" />
       </div>
       <span id="status-text"></span>

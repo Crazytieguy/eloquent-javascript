@@ -17,14 +17,22 @@ const places = {
 };
 const placeKeys = Object.keys(places);
 
-const speed = 2;
-
+const speedInput = document.getElementById("speed-input");
 const robotElt = document.getElementById("robot-elt");
 const robotPic = document.getElementById("robot-img");
 const statusText = document.getElementById("status-text");
 const startStopButton = document.getElementById("start-stop-button");
 const world = document.getElementById("world");
 const parcelNodes = [];
+
+const setRobotTransition = (event) => {
+  let speed = speedInput.valueAsNumber;
+  robotElt.style.transition = `left ${0.8 / speed}s, top ${0.8 / speed}s`;
+};
+speedInput.onchange = () => {
+  setRobotTransition();
+  if (active && active.timeout != null) active.schedule();
+};
 
 class Animation {
   constructor({ robot, place, parcels }) {
@@ -33,9 +41,7 @@ class Animation {
     this.robot = robot;
     this.turn = 0;
 
-    robotElt.style.cssText = `position: absolute; transition: left ${
-      0.8 / speed
-    }s, top ${0.8 / speed}s;`;
+    setRobotTransition();
     robotPic.src = "img/robot_moving2x.gif";
     startStopButton.hidden = false;
     startStopButton.textContent = "Stop";
@@ -97,13 +103,18 @@ class Animation {
       startStopButton.hidden = true;
       statusText.textContent = ` Finished after ${this.turn} turns`;
       robotPic.src = "img/robot_idle2x.png";
+      this.timeout = null;
     } else {
       this.schedule();
     }
   }
 
   schedule() {
-    this.timeout = setTimeout(() => this.tick(), 1000 / speed);
+    if (this.timeout != null) clearTimeout(this.timeout);
+    this.timeout = setTimeout(
+      () => this.tick(),
+      1000 / speedInput.valueAsNumber
+    );
   }
 
   clicked() {

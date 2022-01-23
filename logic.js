@@ -1,5 +1,9 @@
 import { roadGraph } from "./graph.js";
 
+export function idleRobot() {
+  return { to: "Post Office" };
+}
+
 function randomPick(options) {
   let idx = Math.floor(Math.random() * options.length);
   return options[idx];

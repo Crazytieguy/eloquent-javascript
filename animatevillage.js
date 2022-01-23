@@ -1,7 +1,4 @@
-// test: no
 import { move } from "./graph.js";
-
-("use strict");
 
 let active = null;
 
@@ -22,6 +19,13 @@ const placeKeys = Object.keys(places);
 
 const speed = 2;
 
+const robotElt = document.getElementById("robot-elt");
+const robotPic = document.getElementById("robot-img");
+const statusText = document.getElementById("status-text");
+const startStopButton = document.getElementById("start-stop-button");
+const world = document.getElementById("world");
+const parcelNodes = [];
+
 class Animation {
   constructor({ robot, place, parcels }) {
     this.place = place;
@@ -29,47 +33,30 @@ class Animation {
     this.robot = robot;
     this.turn = 0;
 
-    let outer = window.__sandbox ? window.__sandbox.output.div : document.body,
-      doc = outer.ownerDocument;
-    this.node = outer.appendChild(doc.createElement("div"));
-    this.node.style.cssText =
-      "position: relative; line-height: 0.1; margin-left: 10px";
-    this.map = this.node.appendChild(doc.createElement("img"));
-    this.map.src = "img/village2x.png";
-    this.map.style.cssText = "vertical-align: -8px";
-    this.robotElt = this.node.appendChild(doc.createElement("div"));
-    this.robotElt.style.cssText = `position: absolute; transition: left ${
+    robotElt.style.cssText = `position: absolute; transition: left ${
       0.8 / speed
     }s, top ${0.8 / speed}s;`;
-    let robotPic = this.robotElt.appendChild(doc.createElement("img"));
     robotPic.src = "img/robot_moving2x.gif";
-    this.parcelNodes = [];
+    startStopButton.hidden = false;
+    startStopButton.textContent = "Stop";
+    startStopButton.onclick = () => this.clicked();
+    robotElt.ontransitionend = () => this.updateParcels();
 
-    this.text = this.node.appendChild(doc.createElement("span"));
-    this.button = this.node.appendChild(doc.createElement("button"));
-    this.button.style.cssText =
-      "color: white; background: #28b; border: none; border-radius: 2px; padding: 2px 5px; line-height: 1.1; font-family: sans-serif; font-size: 80%";
-    this.button.textContent = "Stop";
-
-    this.button.addEventListener("click", () => this.clicked());
     this.schedule();
-
     this.updateView();
     this.updateParcels();
-
-    this.robotElt.addEventListener("transitionend", () => this.updateParcels());
   }
 
   updateView() {
     let pos = places[this.place];
-    this.robotElt.style.top = pos.y - 38 + "px";
-    this.robotElt.style.left = pos.x - 16 + "px";
+    robotElt.style.top = pos.y - 38 + "px";
+    robotElt.style.left = pos.x - 16 + "px";
 
-    this.text.textContent = ` Turn ${this.turn} `;
+    statusText.textContent = ` Turn ${this.turn} `;
   }
 
   updateParcels() {
-    while (this.parcelNodes.length) this.parcelNodes.pop().remove();
+    while (parcelNodes.length) parcelNodes.pop().remove();
     let heights = {};
     for (let { place, address } of this.parcels) {
       let height = heights[place] || (heights[place] = 0);
@@ -83,14 +70,14 @@ class Animation {
       if (place === this.place) {
         node.style.left = "25px";
         node.style.bottom = 20 + height + "px";
-        this.robotElt.appendChild(node);
+        robotElt.appendChild(node);
       } else {
         let pos = places[place];
         node.style.left = pos.x - 5 + "px";
         node.style.top = pos.y - 10 - height + "px";
-        this.node.appendChild(node);
+        world.appendChild(node);
       }
-      this.parcelNodes.push(node);
+      parcelNodes.push(node);
     }
   }
 
@@ -107,9 +94,9 @@ class Animation {
     this.turn++;
     this.updateView();
     if (this.parcels.length == 0) {
-      this.button.remove();
-      this.text.textContent = ` Finished after ${this.turn} turns`;
-      this.robotElt.firstChild.src = "img/robot_idle2x.png";
+      startStopButton.hidden = true;
+      statusText.textContent = ` Finished after ${this.turn} turns`;
+      robotPic.src = "img/robot_idle2x.png";
     } else {
       this.schedule();
     }
@@ -122,13 +109,13 @@ class Animation {
   clicked() {
     if (this.timeout == null) {
       this.schedule();
-      this.button.textContent = "Stop";
-      this.robotElt.firstChild.src = "img/robot_moving2x.gif";
+      startStopButton.textContent = "Stop";
+      robotPic.src = "img/robot_moving2x.gif";
     } else {
       clearTimeout(this.timeout);
       this.timeout = null;
-      this.button.textContent = "Start";
-      this.robotElt.firstChild.src = "img/robot_idle2x.png";
+      startStopButton.textContent = "Start";
+      robotPic.src = "img/robot_idle2x.png";
     }
   }
 }

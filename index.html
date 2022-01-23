@@ -5,7 +5,47 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Parcel Delivery Robot!</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script type="module" src="main.js"></script>
   </head>
-  <body></body>
+  <body>
+    <label for="robot-select">Choose a robot:</label>
+
+    <select name="robots" id="robot-select">
+      <option value="">--Please choose an option--</option>
+      <option value="randomRobot">randomRobot</option>
+      <option value="routeRobot">routeRobot</option>
+      <option value="pathFindingRobot">pathFindingRobot</option>
+    </select>
+
+    <button id="run-robot">Run Delivery Robot</button>
+
+    <br />
+    <br />
+
+    <div
+      id="world"
+      style="position: relative; line-height: 0.1; margin-left: 10px"
+    >
+      <img src="img/village2x.png" style="vertical-align: -8px" />
+      <div id="robot-elt">
+        <img id="robot-img" />
+      </div>
+      <span id="status-text"></span>
+      <button
+        id="start-stop-button"
+        style="
+          color: white;
+          background: #28b;
+          border: none;
+          border-radius: 2px;
+          padding: 2px 5px;
+          line-height: 1.1;
+          font-family: sans-serif;
+          font-size: 80%;
+        "
+        hidden
+      ></button>
+    </div>
+
+    <script type="module" src="main.js"></script>
+  </body>
 </html>

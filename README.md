@@ -3,4 +3,4 @@ This is a solution to [chapter 7 of Eloquent Javascript](https://eloquentjavascr
 
 The images were coppied from the book, and animatevillage.js was coppied and refactored.
 
-The project is hosted on [Github Pages](https://crazytieguy.github.io/07_robot/)
+The project is hosted on [Github Pages](https://crazytieguy.github.io/eloquent_js_07_robot/)

@@ -1,4 +1,4 @@
-import { roadGraph } from "./graph.js";
+import { roadGraph } from "./graph.mjs";
 
 export function idleRobot() {
   return { to: "Post Office" };

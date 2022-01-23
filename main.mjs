@@ -4,8 +4,8 @@ import {
   randomRobot,
   routeRobot,
   pathFindingRobot,
-} from "./logic.js";
-import { runRobotAnimation } from "./animatevillage.js";
+} from "./logic.mjs";
+import { runRobotAnimation } from "./animatevillage.mjs";
 
 document.getElementById("run-robot").addEventListener("click", () => {
   let robot = {

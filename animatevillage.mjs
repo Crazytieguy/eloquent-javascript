@@ -1,4 +1,4 @@
-import { move } from "./graph.js";
+import { move } from "./graph.mjs";
 
 let active = null;
 

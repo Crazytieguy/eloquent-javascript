@@ -1,47 +1,46 @@
-const {
-  parseProgram,
-  parseList,
-  parseNumber,
-  parseString,
-  parseSymbol,
-  parseWhiteSpace,
-  ParseError,
-} = require("../parser.js");
+const { parseProgram, parseNext, ParseError } = require("../parser.js");
 
 test("parse whitespace", () => {
-  expect(parseWhiteSpace(" ,\n  ,...")).toStrictEqual([
-    { type: "whiteSpace" },
+  expect(parseNext(" ,\n  ,...")).toStrictEqual([
+    { type: "whiteSpace", value: null },
     "...",
   ]);
 });
 
 test("parse a symbol", () => {
-  expect(parseSymbol("some1-sy.mbol,...")).toStrictEqual([
+  expect(parseNext("some1-sy.mbol,...")).toStrictEqual([
     { type: "symbol", value: "some1-sy.mbol" },
     ",...",
   ]);
 });
 
 test("parse a string", () => {
-  expect(parseString('"Some string\n-"...')).toStrictEqual([
+  expect(parseNext('"Some string\n-"...')).toStrictEqual([
     { type: "literal", value: "Some string\n-" },
     "...",
   ]);
 });
 
 test("throw when parsing an invalid string", () => {
-  expect(() => parseString('"...')).toThrow(ParseError);
+  expect(() => parseNext('"...')).toThrow(ParseError);
 });
 
 test("parse a number", () => {
-  expect(parseNumber("019092...")).toStrictEqual([
+  expect(parseNext("019092...")).toStrictEqual([
     { type: "literal", value: 19092 },
     "...",
   ]);
 });
 
+test("parse a simple list", () => {
+  expect(parseNext("(1)...")).toStrictEqual([
+    { type: "list", elements: [{ type: "literal", value: 1 }] },
+    "...",
+  ]);
+});
+
 test("parse a list recursively", () => {
-  expect(parseList('(a 1 (b "s"))...')).toStrictEqual([
+  expect(parseNext('(a 1 (b ")(s"))...')).toStrictEqual([
     {
       type: "list",
       elements: [
@@ -51,7 +50,7 @@ test("parse a list recursively", () => {
           type: "list",
           elements: [
             { type: "symbol", value: "b" },
-            { type: "literal", value: "s" },
+            { type: "literal", value: ")(s" },
           ],
         },
       ],
@@ -61,7 +60,7 @@ test("parse a list recursively", () => {
 });
 
 test("disallow unmatched open paren", () => {
-  expect(() => parseList("(... a 123")).toThrow(
+  expect(() => parseNext("(... a 123")).toThrow(
     new ParseError("Unmatched opening paren")
   );
 });

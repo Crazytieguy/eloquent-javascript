@@ -1,101 +1,58 @@
 class ParseError extends Error {}
 
 function parseProgram(code) {
-  const elements = [];
-  let remainingCode = code;
-  let nextElement;
-  while (remainingCode !== "") {
-    [nextElement, remainingCode] = parseNext(remainingCode);
-    if (nextElement.type !== "whiteSpace") {
-      elements.push(nextElement);
-    }
-  }
-  return elements;
+  return parseWhile(code)[0];
 }
 
 function parseList(code) {
-  const elements = [];
-  let remainingCode = code.slice(1);
-  let nextElement;
-  while (remainingCode[0] !== ")") {
-    if (remainingCode === "") {
-      throw new ParseError("Unmatched opening paren");
-    }
-    [nextElement, remainingCode] = parseNext(remainingCode);
-    if (nextElement.type !== "whiteSpace") {
-      elements.push(nextElement);
-    }
+  const [elements, remainingCode] = parseWhile(
+    code.slice(1),
+    (c) => !c.startsWith(")")
+  );
+  if (remainingCode === "") {
+    throw new ParseError("Unmatched opening paren");
   }
   return [{ type: "list", elements }, remainingCode.slice(1)];
 }
 
+function parseWhile(code, pred = () => true) {
+  const elements = [];
+  let nextElement;
+  while (code.length > 0 && pred(code)) {
+    [nextElement, code] = parseNext(code);
+    if (nextElement.type !== "whiteSpace") {
+      elements.push(nextElement);
+    }
+  }
+  return [elements, code];
+}
+
 function parseNext(code) {
-  let nextChar = code[0];
-  if (nextChar === ")") {
+  if (code.startsWith(")")) {
     throw new ParseError("Unmatched closed paren");
   }
-  if (nextChar === "(") {
+  if (code.startsWith("(")) {
     return parseList(code);
   }
-  if (nextChar === '"') {
-    return parseString(code);
+  for (let [pattern, type, valGetter] of [
+    [/^[\s,]+/, "whiteSpace", () => null],
+    [/^\d+/, "literal", (m) => Number(m[0])],
+    [/^"([^"]*)"/, "literal", (m) => m[1]],
+    [/^[^\s,"()]+/, "symbol", (m) => m[0]],
+  ]) {
+    let match = pattern.exec(code);
+    if (match) {
+      return [{ type, value: valGetter(match) }, code.slice(match[0].length)];
+    }
   }
-  if (whiteSpace.has(nextChar)) {
-    return parseWhiteSpace(code);
-  }
-  if (numbers.has(nextChar)) {
-    return parseNumber(code);
-  }
-  return parseSymbol(code);
-}
-
-const whiteSpace = new Set(" \n\r,");
-
-function parseWhiteSpace(code) {
-  let i = 1;
-  while (code[i] && whiteSpace.has(code[i])) {
-    i++;
-  }
-  return [{ type: "whiteSpace" }, code.slice(i)];
-}
-
-const numbers = new Set("0123456789");
-
-function parseNumber(code) {
-  let i = 1;
-  while (code[i] && numbers.has(code[i])) {
-    i++;
-  }
-  return [{ type: "literal", value: Number(code.slice(0, i)) }, code.slice(i)];
-}
-
-function parseString(code) {
-  let i = 1;
-  while (code[i] && code[i] !== '"') {
-    i++;
-  }
-  if (!code[i]) {
+  if (code.startsWith('"')) {
     throw new ParseError("Unmatched double quote");
   }
-  return [{ type: "literal", value: code.slice(1, i) }, code.slice(i + 1)];
-}
-
-const specialCharacters = new Set([...whiteSpace, ...'()"']);
-
-function parseSymbol(code) {
-  let i = 1;
-  while (code[i] && !specialCharacters.has(code[i])) {
-    i++;
-  }
-  return [{ type: "symbol", value: code.slice(0, i) }, code.slice(i)];
+  throw new ParseError("Parser bug - couldn't parse element");
 }
 
 module.exports = {
+  parseNext,
   parseProgram,
-  parseList,
-  parseNumber,
-  parseString,
-  parseSymbol,
-  parseWhiteSpace,
   ParseError,
 };

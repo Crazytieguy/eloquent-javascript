@@ -9,7 +9,7 @@ function parseList(code) {
     code.slice(1),
     (c) => !c.startsWith(")")
   );
-  if (remainingCode === "") {
+  if (!remainingCode) {
     throw new ParseError("Unmatched opening paren");
   }
   return [{ type: "list", elements }, remainingCode.slice(1)];
@@ -18,8 +18,8 @@ function parseList(code) {
 function parseWhile(code, pred = () => true) {
   const elements = [];
   let nextElement;
-  while (code.length > 0 && pred(code)) {
-    [nextElement, code] = parseNext(code);
+  while (code && pred(code)) {
+    [nextElement, code] = parseExpr(code);
     if (nextElement.type !== "whiteSpace") {
       elements.push(nextElement);
     }
@@ -27,7 +27,7 @@ function parseWhile(code, pred = () => true) {
   return [elements, code];
 }
 
-function parseNext(code) {
+function parseExpr(code) {
   if (code.startsWith(")")) {
     throw new ParseError("Unmatched closed paren");
   }
@@ -52,7 +52,7 @@ function parseNext(code) {
 }
 
 module.exports = {
-  parseNext,
+  parseExpr,
   parseProgram,
   ParseError,
 };

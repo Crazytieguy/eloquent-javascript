@@ -1,46 +1,53 @@
-const { parseProgram, parseNext, ParseError } = require("../parser.js");
+const { parseProgram, parseExpr, ParseError } = require("../parser.js");
 
 test("parse whitespace", () => {
-  expect(parseNext(" ,\n  ,...")).toStrictEqual([
+  expect(parseExpr(" ,\n  ,...")).toStrictEqual([
     { type: "whiteSpace", value: null },
     "...",
   ]);
 });
 
 test("parse a symbol", () => {
-  expect(parseNext("some1-sy.mbol,...")).toStrictEqual([
+  expect(parseExpr("some1-sy.mbol,...")).toStrictEqual([
     { type: "symbol", value: "some1-sy.mbol" },
     ",...",
   ]);
 });
 
 test("parse a string", () => {
-  expect(parseNext('"Some string\n-"...')).toStrictEqual([
+  expect(parseExpr('"Some string\n-"...')).toStrictEqual([
     { type: "literal", value: "Some string\n-" },
     "...",
   ]);
 });
 
 test("throw when parsing an invalid string", () => {
-  expect(() => parseNext('"...')).toThrow(ParseError);
+  expect(() => parseExpr('"...')).toThrow(ParseError);
 });
 
 test("parse a number", () => {
-  expect(parseNext("019092...")).toStrictEqual([
+  expect(parseExpr("019092...")).toStrictEqual([
     { type: "literal", value: 19092 },
     "...",
   ]);
 });
 
 test("parse a simple list", () => {
-  expect(parseNext("(1)...")).toStrictEqual([
+  expect(parseExpr("(1)...")).toStrictEqual([
     { type: "list", elements: [{ type: "literal", value: 1 }] },
     "...",
   ]);
 });
 
+test("parse an empty list", () => {
+  expect(parseExpr("()...")).toStrictEqual([
+    { type: "list", elements: [] },
+    "...",
+  ]);
+});
+
 test("parse a list recursively", () => {
-  expect(parseNext('(a 1 (b ")(s"))...')).toStrictEqual([
+  expect(parseExpr('(a 1 (b ")(s"))...')).toStrictEqual([
     {
       type: "list",
       elements: [
@@ -60,7 +67,7 @@ test("parse a list recursively", () => {
 });
 
 test("disallow unmatched open paren", () => {
-  expect(() => parseNext("(... a 123")).toThrow(
+  expect(() => parseExpr("(... a 123")).toThrow(
     new ParseError("Unmatched opening paren")
   );
 });

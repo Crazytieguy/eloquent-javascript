@@ -1,14 +1,12 @@
 class EvaluatorError extends Error {}
 
 const builtIns = {
-  let([symbol, value, ...rest], context) {
-    if (rest.length) {
-      throw new EvaluatorError(
-        `let takes two arguments, recieved ${exprs.length}`
-      );
+  assign([symbol, value, ...rest], context) {
+    if (value === undefined || rest.length) {
+      throw new EvaluatorError("assign takes exactly two arguments");
     }
     if (symbol.type !== "symbol") {
-      throw new EvaluatorError("First argument to let should be a symbol");
+      throw new EvaluatorError("First argument to assign should be a symbol");
     }
     if (Object.hasOwn(builtIns, symbol.value)) {
       throw new EvaluatorError(`symbol ${symbol.value} is reserved`);
@@ -34,11 +32,11 @@ const builtIns = {
       }
       return value;
     });
-    return { argsList, body };
+    return { type: "function", argsList, body };
   },
   if([cond, then, els, ...rest], context) {
     if (els === undefined || rest.length) {
-      throw new EvaluatorError("if takes three arguments");
+      throw new EvaluatorError("if takes exactly three arguments");
     }
     if (evaluate(cond, context)) {
       return evaluate(then, context);
@@ -63,6 +61,51 @@ const builtIns = {
     console.log(value);
     return value;
   },
+  array(elements, context) {
+    return {
+      type: "array",
+      elements: elements.map((e) => evaluate(e, context)),
+    };
+  },
+  length([arrayExpr, ...rest], context) {
+    if (arrayExpr === undefined || rest.length) {
+      throw new EvaluatorError("length takes exactly one argument");
+    }
+    const array = evaluate(arrayExpr, context);
+    if (!array instanceof Object || array.type !== "array") {
+      throw new EvaluatorError("The only argument to length must be an array");
+    }
+    return array.elements.length;
+  },
+  get([arrayExpr, idxExpr, ...rest], context) {
+    if (idxExpr === undefined || rest.length) {
+      throw new EvaluatorError("get takes exactly two arguments");
+    }
+    const array = evaluate(arrayExpr, context);
+    if (!array instanceof Object || array.type !== "array") {
+      throw new EvaluatorError("First argument to get should be an array");
+    }
+    const idx = evaluate(idxExpr, context);
+    if (!idx instanceof Number) {
+      throw new EvaluatorError("Second argument to get should be a number");
+    }
+    if (idx >= array.elements.length) {
+      throw new Error("idx out of bounds");
+    }
+    return array.elements[idx];
+  },
+  push([arrayExpr, elemExpr, ...rest], context) {
+    if (elemExpr === undefined || rest.length) {
+      throw new EvaluatorError("push takes exactly two arguments");
+    }
+    const array = evaluate(arrayExpr, context);
+    if (!array instanceof Object || array.type !== "array") {
+      throw new EvaluatorError("First argument to push should be an array");
+    }
+    const elem = evaluate(elemExpr, context);
+    array.elements.push(elem);
+    return array;
+  },
 };
 
 const binaryOps = {
@@ -75,12 +118,12 @@ const binaryOps = {
   ">": (a, b) => a > b,
 };
 
-for (let op of ["+", "-", "*", "/", "=", "<", ">"]) {
+for (let [op, callBack] of Object.entries(binaryOps)) {
   builtIns[op] = ([a, b, ...rest], context) => {
     if (b === undefined || rest.length) {
       throw new EvaluatorError(`${op} takes two arguments`);
     }
-    return binaryOps[op](evaluate(a, context), evaluate(b, context));
+    return callBack(evaluate(a, context), evaluate(b, context));
   };
 }
 
@@ -109,13 +152,13 @@ function evaluate(expr, context) {
       return builtIns[expr.elements[0].value](expr.elements.slice(1), context);
     }
     const func = evaluate(expr.elements[0], context);
-    if (!func instanceof Object) {
+    if (!func instanceof Object || func.type !== "function") {
       if (func instanceof String) {
         func = `"${func}"`;
       }
       throw new EvaluatorError(`${func} is not callable`);
     }
-    const args = expr.elements.slice(1).map(evaluate);
+    const args = expr.elements.slice(1).map((e) => evaluate(e, context));
     if (args.length !== func.argsList.length) {
       throw new EvaluatorError(
         `${expr.elements[0].value} was called with a wrong number of arguments`

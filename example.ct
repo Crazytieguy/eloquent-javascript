@@ -1,1 +1,14 @@
-(print "Hello World!")
+(assign total 0)
+(assign count 1)
+(while (< count 11)
+       (assign total (+ total count))
+       (assign count (+ count 1)))
+(print total)
+
+(print ((fn (a b) (+ a b)) 3 5))
+
+(print (sum (array 1 2 3 4 5)))
+
+(print (sum (map (fn (elem)
+                     (+ elem 1))
+                 (array 1 2 3))))

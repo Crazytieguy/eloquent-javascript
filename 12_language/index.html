@@ -34,12 +34,15 @@
         log = (data) => outputElement.append(`${data}\n`);
         function runProgram() {
           const program = codeElement.val();
-          const parsedProgram = parseProgram(program);
           outputElement.empty();
           $.get("./prelude.ct", (prelude) => {
             const context = {};
             evaluateMany(parseProgram(prelude), context);
-            evaluateMany(parsedProgram, context);
+            try {
+              evaluateMany(parseProgram(program), context);
+            } catch (e) {
+              log(e);
+            }
           });
         }
       </script>

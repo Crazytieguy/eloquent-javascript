@@ -51,8 +51,10 @@ function parseExpr(code) {
   throw new ParseError("Parser bug - couldn't parse element");
 }
 
-module.exports = {
-  parseExpr,
-  parseProgram,
-  ParseError,
-};
+if (typeof module !== "undefined") {
+  module.exports = {
+    parseExpr,
+    parseProgram,
+    ParseError,
+  };
+}

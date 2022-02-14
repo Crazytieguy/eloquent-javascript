@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { evaluateMany } = require("./evaluator.js");
-const { parseProgram } = require("./parser");
+const { parseProgram } = require("./parser.js");
 
 const fileName = process.argv[2];
 if (!fileName) {

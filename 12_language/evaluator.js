@@ -1,5 +1,7 @@
 class EvaluatorError extends Error {}
 
+let log = console.log; // This can be overriden in the browser
+
 const builtIns = {
   assign([symbol, value, ...rest], context) {
     if (value === undefined || rest.length) {
@@ -58,7 +60,7 @@ const builtIns = {
       throw new EvaluatorError("print takes one argument");
     }
     const value = evaluate(expr, context);
-    console.log(value);
+    log(value);
     return value;
   },
   array(elements, context) {
@@ -174,8 +176,10 @@ function evaluate(expr, context) {
   throw new EvaluatorError(`Language bug - invalid expression ${expr}`);
 }
 
-module.exports = {
-  evaluate,
-  EvaluatorError,
-  evaluateMany,
-};
+if (typeof module !== "undefined") {
+  module.exports = {
+    evaluate,
+    EvaluatorError,
+    evaluateMany,
+  };
+}
